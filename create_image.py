@@ -1,19 +1,17 @@
 from PIL import Image, ImageFont, ImageDraw
 import os
 
+from app import line_breaks
+from line_breaker import format_blocks
+
 
 def save_zip(blocks, font_size, filename):
-    counter = 0
-    text = ""
     W,H = 1920, 1080
     from zipfile import ZipFile
     with ZipFile("result.zip", "w") as zipObj:
-        for block in blocks:
-            for line in block:
-                text += line + "\n"
-
-            text.encode('utf-8')
-            counter += 1
+        for counter, block in enumerate(blocks,1):
+            text = "\n".join(block)
+            print(text)
             img = Image.open(filename)
             font = ImageFont.truetype("NotoSans-Bold.ttf", font_size)
             editable = ImageDraw.Draw(img)
@@ -22,8 +20,7 @@ def save_zip(blocks, font_size, filename):
             img.save(f"{counter}.png")
             zipObj.write(f"{counter}.png")
             os.remove(f"{counter}.png")
-            text = ""
-        
+    
 
 def save_single(text, font_size, filename):
     img = Image.open(filename)
@@ -33,8 +30,7 @@ def save_single(text, font_size, filename):
     img.save("result.png")
 
 
-def create_image(text, font_size, transparent=False, single_block=False):
-
+def create_image(blocks, font_size, transparent=False, single_block=False):
     if transparent:
         filename = "transparent.png"
     else:
@@ -43,9 +39,9 @@ def create_image(text, font_size, transparent=False, single_block=False):
     if single_block:
         filename = "big_" + filename
         filename = os.path.join("images", filename)
-        save_single(text)
+        paragraph = format_blocks(blocks)
+        save_single(paragraph, font_size, filename)
     else:
         filename = os.path.join("images", filename)
-        save_single(text)
         save_zip(blocks, font_size, filename)
 
